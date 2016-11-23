@@ -18,10 +18,12 @@ import javax.swing.Timer;
 import de.neuenberger.game.snake.logic.SnakeModelLogic;
 import de.neuenberger.game.snake.model.SnakeModel;
 import de.neuenberger.game.snake.model.Vector2D;
+import de.neuenberger.game.snake.view.MessageScreen;
 import de.neuenberger.game.snake.view.ScoreController;
 import de.neuenberger.game.snake.view.SnakeController;
 
 public class SnakeGame extends JFrame {
+	private static final String START = "Start";
 	private static final int GAME_PANE_WIDTH = 30;
 	private static final int GAME_PANE_HEIGHT = 48;
 	private final SnakeModel model;
@@ -87,13 +89,16 @@ public class SnakeGame extends JFrame {
 
 	Timer timer = new Timer(500, timerHandler);
 	private final SnakeModelLogic logic;
+	private JButton startStopPauseButton;
+	private MessageScreen messageScreen;
 
 	SnakeGame() {
 		this.setSize(325, 540);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		model = new SnakeModel();
 		controller = new SnakeController(model);
-		this.add(controller.getPanel(), BorderLayout.CENTER);
+		messageScreen = new MessageScreen();
+		this.add(messageScreen, BorderLayout.CENTER);
 		logic = new SnakeModelLogic(model);
 
 		final JToolBar toolbar = new JToolBar();
@@ -102,6 +107,7 @@ public class SnakeGame extends JFrame {
 		setupToolBar(toolbar);
 		this.requestFocus();
 		resetGame();
+		messageScreen.setMessage(MessageScreen.SNAKE);
 		this.addKeyListener(keyAdapter);
 		final ScoreController scoreController = new ScoreController(model.getP1());
 		this.add(scoreController.getScorePanel(), BorderLayout.SOUTH);
@@ -109,6 +115,10 @@ public class SnakeGame extends JFrame {
 	}
 
 	private void resetGame() {
+		timer.stop();
+		startStopPauseButton.setText(START);
+		this.add(messageScreen, BorderLayout.CENTER);
+		messageScreen.setMessage(MessageScreen.GAME_OVER);
 		model.getP1().clearPoints();
 		model.setLifes(model.getP1(), 3);
 		setupLevel(model, 0);
@@ -212,22 +222,23 @@ public class SnakeGame extends JFrame {
 	}
 
 	private void setupToolBar(final JToolBar toolbar) {
-		final JButton button = new JButton("start");
-		button.addActionListener(new ActionListener() {
+		startStopPauseButton = new JButton(START);
+		startStopPauseButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				if (timer.isRunning()) {
 					timer.stop();
-					button.setText("continue");
+					startStopPauseButton.setText("continue");
 				} else {
 					timer.start();
-					button.setText("pause");
+					startStopPauseButton.setText("pause");
+					SnakeGame.this.add(controller.getPanel(), BorderLayout.CENTER);
 				}
 				SnakeGame.this.requestFocus();
 			}
 		});
-		toolbar.add(button);
+		toolbar.add(startStopPauseButton);
 
 		final JButton cheatButton = new JButton("c");
 		cheatButton.addActionListener(new ActionListener() {

@@ -3,19 +3,18 @@ package de.neuenberger.game.snake.view;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.util.List;
 
 import javax.swing.ImageIcon;
 
 import de.neuenberger.game.snake.model.SnakeModel;
 import de.neuenberger.game.snake.model.SnakePlayer;
 import de.neuenberger.game.snake.model.Vector2D;
+import de.neuenberger.game.snake.view.core.GameImageProducer;
+import de.neuenberger.game.snake.view.core.ImagePanel;
 
 public class SnakeController {
-	Image image;
 	SnakeModel model;
-	private SnakePanel panel;
+	private GameImageProducer gameImageProducer;
 	
 	public static final Image imageBrick = getImage("wall.png");
 	public static final Image imageSnake = getImage("snake_green.png");
@@ -28,10 +27,12 @@ public class SnakeController {
 	public static final int BLOCK_SIZE = 10;
 	
 	public SnakeController(SnakeModel model) {
+		this(model,new GameImageProducer(BLOCK_SIZE, new SnakePanel(), model.getWidth(),model.getHeight()));
+	}
+	
+	public SnakeController(SnakeModel model, GameImageProducer gameImageProducer) {
 		this.model = model;
-		panel = new SnakePanel();
-		image = new BufferedImage(model.getWidth()*BLOCK_SIZE, model.getHeight()*BLOCK_SIZE, BufferedImage.TYPE_INT_RGB);
-		panel.setImage(image);
+		this.gameImageProducer = gameImageProducer;
 	}
 	
 	private static Image getImage(String string) {
@@ -40,15 +41,10 @@ public class SnakeController {
 	}
 
 	public void update() {
-		Graphics graphics = image.getGraphics();
-		graphics.setColor(Color.BLACK);
-		graphics.fillRect(0,0,model.getWidth()*BLOCK_SIZE, model.getHeight()*BLOCK_SIZE);
+		gameImageProducer.clear(Color.BLACK);
 		
-		graphics.setColor(Color.GREEN);
-		drawListWithImage(graphics, model.getBites(), 0, 10, imageApple);
-		graphics.setColor(Color.LIGHT_GRAY);
-		drawListWithImage(graphics, model.getBlocks(), 0, imageBrick);
-		graphics.setColor(Color.WHITE);
+		gameImageProducer.drawListWithImage(model.getBites(), 0, 10, imageApple);
+		gameImageProducer.drawListWithImage(model.getBlocks(), 0, imageBrick);
 		
 		
 		SnakePlayer p1 = model.getP1();
@@ -64,46 +60,18 @@ public class SnakeController {
 		} else if (direction.getY()==-1) {
 			result = imageSnakeU;
 		}
-		graphics.drawImage(result, head.getX()*BLOCK_SIZE, head.getY()*BLOCK_SIZE, 10, 10, panel);
-		drawListWithImage(graphics, p1.getDots(), 1, imageSnake);
+		gameImageProducer.drawImage(result, head.getX()*BLOCK_SIZE, head.getY()*BLOCK_SIZE);
+		gameImageProducer.drawListWithImage(p1.getDots(), 1, imageSnake);
 		
-		panel.repaint();
+		gameImageProducer.repaint();
 	}
 	
-	public void drawListWithImage(Graphics g, List<Vector2D> list, int offset, Image image) {
-		drawListWithImage(g, list, offset, Integer.MAX_VALUE, image);
-	}
 	
-	public void drawListWithImage(Graphics g, List<Vector2D> list, int offset, int max, Image image) {
-		if (list!=null) {
-			for (int i=offset; i<list.size() && i<max; i++) {
-				Vector2D v = list.get(i);
-				int x = v.getX()*BLOCK_SIZE;
-				int y = v.getY()*BLOCK_SIZE;
-				g.drawImage(image, x, y, 10, 10, panel);
-			}
-		}
-	}
-	
-	public static void drawListWithColors(Graphics g, List<Vector2D> list, int offset) {
-		drawListWithColors(g, list, offset, Integer.MAX_VALUE);
-	}
-	
-	public static void drawListWithColors(Graphics g, List<Vector2D> list, int offset, int max) {
-		if (list!=null) {
-			for (int i=offset; i<list.size() && i<max; i++) {
-				Vector2D v = list.get(i);
-				int x = v.getX()*BLOCK_SIZE;
-				int y = v.getY()*BLOCK_SIZE;
-				g.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE);
-			}
-		}
-	}
 
 	/**
 	 * @return the panel
 	 */
-	public SnakePanel getPanel() {
-		return panel;
+	public ImagePanel getPanel() {
+		return gameImageProducer.getPanel();
 	}
 }
