@@ -77,10 +77,10 @@ public class SnakeGame extends JFrame {
 		@Override
 		public void propertyChange(final PropertyChangeEvent evt) {
 			final int lifes = model.getP1().getLifes();
-			if (lifes > 0) {
+			if (lifes >= 0) {
 				setupLevel(model, model.getLevel());
 			} else {
-				setupLevel(model, 0);
+				resetGame();
 			}
 		}
 	};
@@ -101,11 +101,17 @@ public class SnakeGame extends JFrame {
 		this.add(toolbar, BorderLayout.NORTH);
 		setupToolBar(toolbar);
 		this.requestFocus();
-		setupLevel(model, 0);
+		resetGame();
 		this.addKeyListener(keyAdapter);
 		final ScoreController scoreController = new ScoreController(model.getP1());
 		this.add(scoreController.getScorePanel(), BorderLayout.SOUTH);
 		model.addPropertyChangeListener(SnakeModel.LIFES, lifeHandler);
+	}
+
+	private void resetGame() {
+		model.getP1().clearPoints();
+		model.setLifes(model.getP1(), 3);
+		setupLevel(model, 0);
 	}
 
 	private void setupLevel(final SnakeModel model, final int i) {

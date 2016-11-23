@@ -34,19 +34,8 @@ public class SnakeModelLogic {
 
 		final Integer hitSelf = Vector2D.hitTest(model.getP1().getDots(), head, 1);
 		if (outOfBounds || hitBlock != null || hitSelf != null) {
-
-			if (p.getLifes() <= 0) {
-				resetGame();
-			} else {
-				model.setLifes(p, p.getLifes() - 1);
-			}
+			model.setLifes(p, p.getLifes() - 1);
 		}
-	}
-
-	private void resetGame() {
-		model.setLevel(0);
-		model.getP1().clearPoints();
-		model.setLifes(model.getP1(), 3);
 	}
 
 	private void movePlayer(final SnakePlayer p) {
