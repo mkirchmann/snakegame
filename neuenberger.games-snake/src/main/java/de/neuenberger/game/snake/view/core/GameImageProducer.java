@@ -7,7 +7,6 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 
 import de.neuenberger.game.snake.model.Vector2D;
-import de.neuenberger.game.snake.view.SnakePanel;
 
 public class GameImageProducer {
 	private int blockSize;

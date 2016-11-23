@@ -98,7 +98,7 @@ public class SnakeGame extends JFrame {
 		model = new SnakeModel();
 		controller = new SnakeController(model);
 		messageScreen = new MessageScreen();
-		this.add(messageScreen, BorderLayout.CENTER);
+		showMessageScreen();
 		logic = new SnakeModelLogic(model);
 
 		final JToolBar toolbar = new JToolBar();
@@ -107,7 +107,7 @@ public class SnakeGame extends JFrame {
 		setupToolBar(toolbar);
 		this.requestFocus();
 		resetGame();
-		messageScreen.setMessage(MessageScreen.SNAKE);
+		messageScreen.setSnake();
 		this.addKeyListener(keyAdapter);
 		final ScoreController scoreController = new ScoreController(model.getP1());
 		this.add(scoreController.getScorePanel(), BorderLayout.SOUTH);
@@ -117,11 +117,19 @@ public class SnakeGame extends JFrame {
 	private void resetGame() {
 		timer.stop();
 		startStopPauseButton.setText(START);
-		this.add(messageScreen, BorderLayout.CENTER);
-		messageScreen.setMessage(MessageScreen.GAME_OVER);
+		showMessageScreen();
+		messageScreen.setGameOver();
 		model.getP1().clearPoints();
 		model.setLifes(model.getP1(), 3);
 		setupLevel(model, 0);
+	}
+
+	private void showGameScreen() {
+		this.add(controller.getPanel(), BorderLayout.CENTER);
+	}
+	
+	private void showMessageScreen() {
+		this.add(messageScreen, BorderLayout.CENTER);
 	}
 
 	private void setupLevel(final SnakeModel model, final int i) {
@@ -230,13 +238,16 @@ public class SnakeGame extends JFrame {
 				if (timer.isRunning()) {
 					timer.stop();
 					startStopPauseButton.setText("continue");
+					messageScreen.setPause();
+					showMessageScreen();
 				} else {
 					timer.start();
 					startStopPauseButton.setText("pause");
-					SnakeGame.this.add(controller.getPanel(), BorderLayout.CENTER);
+					showGameScreen();
 				}
 				SnakeGame.this.requestFocus();
 			}
+
 		});
 		toolbar.add(startStopPauseButton);
 

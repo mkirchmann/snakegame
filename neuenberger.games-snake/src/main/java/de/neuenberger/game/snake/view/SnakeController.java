@@ -1,7 +1,6 @@
 package de.neuenberger.game.snake.view;
 
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Image;
 
 import javax.swing.ImageIcon;
@@ -27,7 +26,7 @@ public class SnakeController {
 	public static final int BLOCK_SIZE = 10;
 	
 	public SnakeController(SnakeModel model) {
-		this(model,new GameImageProducer(BLOCK_SIZE, new SnakePanel(), model.getWidth(),model.getHeight()));
+		this(model,new GameImageProducer(BLOCK_SIZE, new ImagePanel(), model.getWidth(),model.getHeight()));
 	}
 	
 	public SnakeController(SnakeModel model, GameImageProducer gameImageProducer) {
