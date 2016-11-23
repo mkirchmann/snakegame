@@ -18,9 +18,12 @@ import javax.swing.Timer;
 import de.neuenberger.game.snake.logic.SnakeModelLogic;
 import de.neuenberger.game.snake.model.SnakeModel;
 import de.neuenberger.game.snake.model.Vector2D;
+import de.neuenberger.game.snake.view.ScoreController;
 import de.neuenberger.game.snake.view.SnakeController;
 
 public class SnakeGame extends JFrame {
+	private static final int GAME_PANE_WIDTH = 30;
+	private static final int GAME_PANE_HEIGHT = 48;
 	private final SnakeModel model;
 	private final SnakeController controller;
 
@@ -86,6 +89,7 @@ public class SnakeGame extends JFrame {
 	private final SnakeModelLogic logic;
 
 	SnakeGame() {
+		this.setSize(325, 540);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		model = new SnakeModel();
 		controller = new SnakeController(model);
@@ -99,7 +103,8 @@ public class SnakeGame extends JFrame {
 		this.requestFocus();
 		setupLevel(model, 0);
 		this.addKeyListener(keyAdapter);
-
+		final ScoreController scoreController = new ScoreController(model.getP1());
+		this.add(scoreController.getScorePanel(), BorderLayout.SOUTH);
 		model.addPropertyChangeListener(SnakeModel.LIFES, lifeHandler);
 	}
 
@@ -113,7 +118,7 @@ public class SnakeGame extends JFrame {
 		model.getP1().setGrowth(5);
 		timer.setDelay(Math.max(70, 150 - i * 10));
 
-		final int mode = i % 5;
+		final int mode = i % 7;
 		final List<Vector2D> bricks = new ArrayList<Vector2D>();
 		switch (mode) {
 		case 0:
@@ -121,7 +126,7 @@ public class SnakeGame extends JFrame {
 			break;
 		case 2:
 			// vertical wall, one face
-			for (int y = 0; y < 48; y++) {
+			for (int y = 0; y < GAME_PANE_HEIGHT; y++) {
 				if (y > 3 && y < 12 || y > 15 && y < 28 || y > 30 && y < 43) {
 					bricks.add(new Vector2D(16, y));
 				}
@@ -130,29 +135,53 @@ public class SnakeGame extends JFrame {
 		case 1:
 			// horizontal wall, one face
 
-			for (int x = 0; x < 24; x++) {
-				if (x > 3 && x < 12 || x > 15 && x < 28) {
+			for (int x = 0; x < GAME_PANE_WIDTH; x++) {
+				if (x > 3 && x < 12 || x > 15 && x < 24) {
 					bricks.add(new Vector2D(x, 22));
 				}
 			}
 			break;
-		case 4:
+		case 6:
+			// horizontal wall
+			for (int x = 0; x < GAME_PANE_WIDTH; x++) {
+				if (x > 3 && x < 11 || x > 17 && x < 25) {
+					bricks.add(new Vector2D(x, 3));
+					bricks.add(new Vector2D(x, 17));
+					bricks.add(new Vector2D(x, 25));
+					bricks.add(new Vector2D(x, 39));
+				}
+			}
+
+			// small vertical walls attached.
+			for (int y = 0; y < GAME_PANE_HEIGHT; y++) {
+				if (y > 3 && y < 10 || y > 17 && y < 25 || y > 32 && y < 39) {
+					bricks.add(new Vector2D(4, y));
+					if (y < 8 || y > 35) {
+						bricks.add(new Vector2D(10, y));
+						bricks.add(new Vector2D(18, y));
+					}
+					bricks.add(new Vector2D(24, y));
+				}
+			}
+			break;
+		case 5:
 			// vertical wall, two face
-			for (int y = 0; y < 48; y++) {
+			for (int y = 0; y < GAME_PANE_HEIGHT; y++) {
 				if (y > 3 && y < 12 || y > 15 && y < 28 || y > 30 && y < 43) {
 					bricks.add(new Vector2D(10, y));
 					bricks.add(new Vector2D(20, y));
 				}
 			}
-		case 5:
+		case 4:
 			// horizontal wall, twwo face
 
-			for (int x = 0; x < 24; x++) {
-				if (x > 3 && x < 12 || x > 15 && x < 28) {
+			for (int x = 0; x < GAME_PANE_WIDTH; x++) {
+				if (x > 3 && x < 12 || x > 15 && x < 24) {
 					bricks.add(new Vector2D(x, 15));
 					bricks.add(new Vector2D(x, 30));
 				}
 			}
+			break;
 		}
 
 		final int maxItems = 10 + i * 5;
