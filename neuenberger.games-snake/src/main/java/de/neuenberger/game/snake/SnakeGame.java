@@ -33,6 +33,11 @@ public class SnakeGame extends JFrame {
 
 	java.awt.event.KeyEvent blockedKeyEvent = null;
 
+	GameState gameState = null;
+	enum GameState {
+		RUNNING, PAUSED;
+	}
+	
 	KeyAdapter keyAdapter = new KeyAdapter() {
 		@Override
 		public void keyPressed(final java.awt.event.KeyEvent e) {
@@ -82,12 +87,12 @@ public class SnakeGame extends JFrame {
 			if (lifes >= 0) {
 				setupLevel(model, model.getLevel());
 			} else {
-				resetGame();
+				setGameOver();
 			}
 		}
 	};
 
-	Timer timer = new Timer(500, timerHandler);
+	Timer gameTickTimer = new Timer(500, timerHandler);
 	private final SnakeModelLogic logic;
 	private JButton startStopPauseButton;
 	private MessageScreen messageScreen;
@@ -106,43 +111,76 @@ public class SnakeGame extends JFrame {
 		this.add(toolbar, BorderLayout.NORTH);
 		setupToolBar(toolbar);
 		this.requestFocus();
-		resetGame();
 		messageScreen.setSnake();
 		this.addKeyListener(keyAdapter);
 		final ScoreController scoreController = new ScoreController(model.getP1());
 		this.add(scoreController.getScorePanel(), BorderLayout.SOUTH);
 		model.addPropertyChangeListener(SnakeModel.LIFES, lifeHandler);
+		
 	}
 
 	private void resetGame() {
-		timer.stop();
 		startStopPauseButton.setText(START);
-		showMessageScreen();
-		messageScreen.setGameOver();
 		model.getP1().clearPoints();
 		model.setLifes(model.getP1(), 3);
 		setupLevel(model, 0);
+		gameState=GameState.RUNNING;
 	}
 
 	private void showGameScreen() {
 		this.add(controller.getPanel(), BorderLayout.CENTER);
+		controller.getPanel().setVisible(true);
+		messageScreen.setVisible(false);
 	}
 	
 	private void showMessageScreen() {
 		this.add(messageScreen, BorderLayout.CENTER);
+		controller.getPanel().setVisible(false);
+		messageScreen.setVisible(true);
 	}
 
-	private void setupLevel(final SnakeModel model, final int i) {
-		model.setLevel(i);
+	private void setupLevel(final SnakeModel model, final int level) {
+		model.setLevel(level);
 
+		
 		model.getP1().getDots().clear();
 		model.getP1().getDots().add(new Vector2D(15, 24));
 		model.getP1().getDirection().setX(0);
 		model.getP1().getDirection().setY(-1);
 		model.getP1().setGrowth(5);
-		timer.setDelay(Math.max(70, 150 - i * 10));
+		gameTickTimer.setDelay(Math.max(70, 150 - level * 10));
 
-		final int mode = i % 7;
+		final List<Vector2D> bricks = getLevelBricks(level);
+
+		final int maxItems = 10 + level * 5;
+		model.setBites(randomBlocks(maxItems, bricks));
+		model.setBlocks(bricks);
+		showLevelMessage(level);
+	}
+
+	private void showLevelMessage(final int level) {
+		gameTickTimer.stop();
+		showMessageScreen();
+		messageScreen.countTilLevel(level, new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showGameScreen();
+				gameTickTimer.start();
+			}
+			
+		});
+	}
+	
+	private void setGameOver() {
+		gameState=null;
+		gameTickTimer.stop();
+		showMessageScreen();
+		messageScreen.setGameOver();
+	}
+
+	private List<Vector2D> getLevelBricks(final int level) {
+		final int mode = level % 7;
 		final List<Vector2D> bricks = new ArrayList<Vector2D>();
 		switch (mode) {
 		case 0:
@@ -207,10 +245,7 @@ public class SnakeGame extends JFrame {
 			}
 			break;
 		}
-
-		final int maxItems = 10 + i * 5;
-		model.setBites(randomBlocks(maxItems, bricks));
-		model.setBlocks(bricks);
+		return Collections.unmodifiableList(bricks);
 	}
 
 	public List<Vector2D> randomBlocks(final int n, final List<Vector2D> exclusions) {
@@ -235,13 +270,20 @@ public class SnakeGame extends JFrame {
 
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				if (timer.isRunning()) {
-					timer.stop();
+				if (gameState==null) {
+					// no game running.
+					resetGame(); // start game
+					gameTickTimer.start();
+				} else if (gameState==GameState.RUNNING) {
+					gameState = GameState.PAUSED;
+					gameTickTimer.stop();
 					startStopPauseButton.setText("continue");
 					messageScreen.setPause();
 					showMessageScreen();
 				} else {
-					timer.start();
+					gameState = GameState.RUNNING;
+					gameTickTimer.start();
+					
 					startStopPauseButton.setText("pause");
 					showGameScreen();
 				}
@@ -262,7 +304,7 @@ public class SnakeGame extends JFrame {
 		});
 		toolbar.add(cheatButton);
 	}
-
+	
 	public static void main(final String[] args) {
 		final SnakeGame snakeGame = new SnakeGame();
 		snakeGame.setVisible(true);

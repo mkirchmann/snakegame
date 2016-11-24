@@ -1,5 +1,6 @@
 package de.neuenberger.game.snake.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Vector2D {
@@ -101,6 +102,10 @@ public class Vector2D {
 		}
 		return result;
 	}
+	
+	public Vector2D cloneMove(Vector2D move) {
+		return new Vector2D(x+move.x,y+move.y);
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -108,6 +113,14 @@ public class Vector2D {
 	@Override
 	public String toString() {
 		return "Vektor [x=" + x + ", y=" + y + "]";
+	}
+
+	public static List<Vector2D> move(List<Vector2D> list, Vector2D move) {
+		List<Vector2D> listOfVectors = new ArrayList<Vector2D>(list.size());
+		for (Vector2D vector2d : list) {
+			listOfVectors.add(vector2d.cloneMove(move));
+		}
+		return listOfVectors;
 	}
 	
 	
