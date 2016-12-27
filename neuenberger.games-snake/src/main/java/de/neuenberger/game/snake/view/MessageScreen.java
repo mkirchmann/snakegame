@@ -12,8 +12,6 @@ import java.util.Optional;
 import javax.swing.ImageIcon;
 import javax.swing.Timer;
 
-import org.junit.runners.model.FrameworkMethod;
-
 import de.neuenberger.game.snake.model.Vector2D;
 import de.neuenberger.game.snake.view.MessageScreen.Font;
 import de.neuenberger.game.snake.view.core.GameImageProducer;
