@@ -12,6 +12,7 @@ public class SnakeModel {
 	PropertyChangeSupport support = new PropertyChangeSupport(this);
 
 	SnakePlayer p1 = new SnakePlayer();
+	SnakePlayer p2 = new SnakePlayer();
 	List<Vector2D> blocks = null;
 	List<Vector2D> bites = null;
 
@@ -19,6 +20,8 @@ public class SnakeModel {
 	final int height = 45;
 
 	private int level;
+
+	private boolean twoPlayerGame;
 
 	public void setLifes(final SnakePlayer p, final int x) {
 		final PropertyChangeEvent event = new PropertyChangeEvent(p, LIFES, p.getLifes(), x);
@@ -131,6 +134,18 @@ public class SnakeModel {
 	 */
 	public void removePropertyChangeListener(final String propertyName, final PropertyChangeListener listener) {
 		support.removePropertyChangeListener(propertyName, listener);
+	}
+
+	public boolean isTwoPlayerGame() {
+		return twoPlayerGame;
+	}
+
+	public SnakePlayer getP2() {
+		return p2;
+	}
+
+	public void setTwoPlayerGame(boolean selected) {
+		this.twoPlayerGame = selected;
 	}
 
 }

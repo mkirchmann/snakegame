@@ -11,12 +11,14 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JToolBar;
 import javax.swing.Timer;
 
 import de.neuenberger.game.snake.logic.SnakeModelLogic;
 import de.neuenberger.game.snake.model.SnakeModel;
+import de.neuenberger.game.snake.model.SnakePlayer;
 import de.neuenberger.game.snake.model.Vector2D;
 import de.neuenberger.game.snake.view.MessageScreen;
 import de.neuenberger.game.snake.view.ScoreController;
@@ -26,38 +28,61 @@ public class SnakeGame extends JFrame {
 	private static final String START = "Start";
 	private static final int GAME_PANE_WIDTH = 30;
 	private static final int GAME_PANE_HEIGHT = 48;
+	private static final int INITIAL_LIFES = 3;
 	private final SnakeModel model;
 	private final SnakeController controller;
 
-	boolean blockKey = false;
 
-	java.awt.event.KeyEvent blockedKeyEvent = null;
 
 	GameState gameState = null;
 	enum GameState {
 		RUNNING, PAUSED;
 	}
 	
-	KeyAdapter keyAdapter = new KeyAdapter() {
+	class HandlePlayerKey extends KeyAdapter {
+		final SnakePlayer player;
+		final int rotateLKey;
+		final int rotateRKey;
+		java.awt.event.KeyEvent blockedKeyEvent = null;
+
+		public HandlePlayerKey(SnakePlayer player, int rotateLKey, int rotateRKey) {
+			this.player = player;
+			this.rotateLKey = rotateLKey;
+			this.rotateRKey = rotateRKey;
+		}
+		boolean blockKey = false;
 		@Override
 		public void keyPressed(final java.awt.event.KeyEvent e) {
-			if (e.getKeyCode() == 37) {
+			if (e.getKeyCode() == rotateLKey) {
 				if (blockKey == false) {
-					model.getP1().getDirection().rotate(1);
+					player.getDirection().rotate(1);
 					blockKey = true;
 				} else {
 					blockedKeyEvent = e;
 				}
-			} else if (e.getKeyCode() == 39) {
+			} else if (e.getKeyCode() == rotateRKey) {
 				if (blockKey == false) {
-					model.getP1().getDirection().rotate(-1);
+					player.getDirection().rotate(-1);
 					blockKey = true;
 				} else {
 					blockedKeyEvent = e;
 				}
+			} else {
+				System.out.println("unknonw keycode: " + e.getKeyCode());
 			}
 		};
+
+		public void nextTick() {
+			blockKey = false;
+			if (blockedKeyEvent != null) {
+				keyPressed(blockedKeyEvent);
+				blockedKeyEvent = null;
+			}
+		}
 	};
+
+	HandlePlayerKey handlePlayerKey1;
+
 
 	ActionListener timerHandler = new ActionListener() {
 
@@ -70,11 +95,9 @@ public class SnakeGame extends JFrame {
 			if (bites != null && bites.size() == 0) {
 				setupLevel(model, model.getLevel() + 1);
 			}
-			blockKey = false;
-			if (blockedKeyEvent != null) {
-				keyAdapter.keyPressed(blockedKeyEvent);
-				blockedKeyEvent = null;
-			}
+
+			handlePlayerKey1.nextTick();
+			handlePlayerKey2.nextTick();
 		}
 
 	};
@@ -96,11 +119,14 @@ public class SnakeGame extends JFrame {
 	private final SnakeModelLogic logic;
 	private JButton startStopPauseButton;
 	private MessageScreen messageScreen;
+	private JCheckBox twoPlayerGameButton;
+	private HandlePlayerKey handlePlayerKey2;
 
 	SnakeGame() {
 		this.setSize(325, 540);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		model = new SnakeModel();
+
 		controller = new SnakeController(model);
 		messageScreen = new MessageScreen();
 		showMessageScreen();
@@ -112,7 +138,10 @@ public class SnakeGame extends JFrame {
 		setupToolBar(toolbar);
 		this.requestFocus();
 		messageScreen.setSnake();
-		this.addKeyListener(keyAdapter);
+		handlePlayerKey1 = new HandlePlayerKey(model.getP1(), 37, 39);
+		handlePlayerKey2 = new HandlePlayerKey(model.getP2(), 81, 69);
+		this.addKeyListener(handlePlayerKey1);
+		this.addKeyListener(handlePlayerKey2);
 		final ScoreController scoreController = new ScoreController(model.getP1());
 		this.add(scoreController.getScorePanel(), BorderLayout.SOUTH);
 		model.addPropertyChangeListener(SnakeModel.LIFES, lifeHandler);
@@ -122,7 +151,11 @@ public class SnakeGame extends JFrame {
 	private void resetGame() {
 		startStopPauseButton.setText(START);
 		model.getP1().clearPoints();
-		model.setLifes(model.getP1(), 3);
+		model.setLifes(model.getP1(), INITIAL_LIFES);
+		if (model.isTwoPlayerGame()) {
+			model.getP2().clearPoints();
+			model.setLifes(model.getP2(), INITIAL_LIFES);
+		}
 		setupLevel(model, 0);
 		gameState=GameState.RUNNING;
 	}
@@ -143,11 +176,12 @@ public class SnakeGame extends JFrame {
 		model.setLevel(level);
 
 		
-		model.getP1().getDots().clear();
-		model.getP1().getDots().add(new Vector2D(15, 24));
-		model.getP1().getDirection().setX(0);
-		model.getP1().getDirection().setY(-1);
-		model.getP1().setGrowth(5);
+		SnakePlayer player = model.getP1();
+		initializePlayer(player, new Vector2D(15, 24));
+		if (model.isTwoPlayerGame()) {
+			initializePlayer(model.getP2(), new Vector2D(14, 8));
+			model.getP2().getDirection().setY(1);
+		}
 		gameTickTimer.setDelay(Math.max(70, 150 - level * 10));
 
 		final List<Vector2D> bricks = getLevelBricks(level);
@@ -156,6 +190,15 @@ public class SnakeGame extends JFrame {
 		model.setBites(randomBlocks(maxItems, bricks));
 		model.setBlocks(bricks);
 		showLevelMessage(level);
+	}
+
+	private void initializePlayer(SnakePlayer player, Vector2D initialPosition) {
+		List<Vector2D> dots = player.getDots();
+		dots.clear();
+		dots.add(initialPosition);
+		player.getDirection().setX(0);
+		player.getDirection().setY(-1);
+		player.setGrowth(5);
 	}
 
 	private void showLevelMessage(final int level) {
@@ -177,6 +220,7 @@ public class SnakeGame extends JFrame {
 		gameTickTimer.stop();
 		showMessageScreen();
 		messageScreen.setGameOver();
+		twoPlayerGameButton.setEnabled(true);
 	}
 
 	private List<Vector2D> getLevelBricks(final int level) {
@@ -265,6 +309,17 @@ public class SnakeGame extends JFrame {
 	}
 
 	private void setupToolBar(final JToolBar toolbar) {
+		twoPlayerGameButton = new JCheckBox("2P");
+		twoPlayerGameButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				model.setTwoPlayerGame(twoPlayerGameButton.isSelected());
+			}
+		});
+
+		toolbar.add(twoPlayerGameButton);
+
 		startStopPauseButton = new JButton(START);
 		startStopPauseButton.addActionListener(new ActionListener() {
 
@@ -274,6 +329,7 @@ public class SnakeGame extends JFrame {
 					// no game running.
 					resetGame(); // start game
 					gameTickTimer.start();
+					twoPlayerGameButton.setEnabled(false);
 				} else if (gameState==GameState.RUNNING) {
 					gameState = GameState.PAUSED;
 					gameTickTimer.stop();

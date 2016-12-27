@@ -15,6 +15,9 @@ public class SnakeModelLogic {
 
 	public void nextTick() {
 		nextTick(model.getP1());
+		if (model.isTwoPlayerGame()) {
+			nextTick(model.getP2());
+		}
 	}
 
 	public void nextTick(final SnakePlayer p) {

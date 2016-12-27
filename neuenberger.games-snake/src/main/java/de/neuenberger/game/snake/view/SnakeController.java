@@ -16,11 +16,16 @@ public class SnakeController {
 	private GameImageProducer gameImageProducer;
 	
 	public static final Image imageBrick = getImage("wall.png");
-	public static final Image imageSnake = getImage("snake_green.png");
-	public static final Image imageSnakeU = getImage("snake_green_up.png");
-	public static final Image imageSnakeL = getImage("snake_green_left.png");
-	public static final Image imageSnakeD = getImage("snake_green_down.png");
-	public static final Image imageSnakeR = getImage("snake_green_right.png");
+	public static final Image imageSnake1 = getImage("snake_green.png");
+	public static final Image imageSnake1U = getImage("snake_green_up.png");
+	public static final Image imageSnake1L = getImage("snake_green_left.png");
+	public static final Image imageSnake1D = getImage("snake_green_down.png");
+	public static final Image imageSnake1R = getImage("snake_green_right.png");
+	public static final Image imageSnake2 = getImage("snake_blue.png");
+	public static final Image imageSnake2U = getImage("snake_blue_up.png");
+	public static final Image imageSnake2L = getImage("snake_blue_left.png");
+	public static final Image imageSnake2D = getImage("snake_blue_down.png");
+	public static final Image imageSnake2R = getImage("snake_blue_right.png");
 	public static final Image imageApple = getImage("apple.png");
 	
 	public static final int BLOCK_SIZE = 10;
@@ -47,25 +52,75 @@ public class SnakeController {
 		
 		
 		SnakePlayer p1 = model.getP1();
+		PlayerImageProvider drawer = p1Drawer;
+		
+		drawPlayer(p1, drawer);
+		if (model.isTwoPlayerGame()) {
+			drawPlayer(model.getP2(), p2Drawer);
+		}
+		
+		gameImageProducer.repaint();
+	}
+
+	private void drawPlayer(SnakePlayer p1, PlayerImageProvider drawer) {
 		Vector2D head = p1.getDots().get(0);
 		Vector2D direction = p1.getDirection();
 		Image result = null;
 		if (direction.getX()==1) {
-			result = imageSnakeR;
+			result = drawer.getImageRight();
 		} else if (direction.getX()==-1) {
-			result = imageSnakeL;
+			result = drawer.getImageLeft();
 		} else if (direction.getY()==1) {
-			result = imageSnakeD;
+			result = drawer.getImageDown();
 		} else if (direction.getY()==-1) {
-			result = imageSnakeU;
+			result = drawer.getImageUp();
 		}
 		gameImageProducer.drawImage(result, head.getX()*BLOCK_SIZE, head.getY()*BLOCK_SIZE);
-		gameImageProducer.drawListWithImage(p1.getDots(), 1, imageSnake);
-		
-		gameImageProducer.repaint();
+		gameImageProducer.drawListWithImage(p1.getDots(), 1, drawer.getImageBody());
 	}
 	
+	PlayerImageProvider p1Drawer = new PlayerImageProvider(imageSnake1R, imageSnake1L, imageSnake1U, imageSnake1D, imageSnake1);
+	PlayerImageProvider p2Drawer = new PlayerImageProvider(imageSnake2R, imageSnake2L, imageSnake2U, imageSnake2D,
+			imageSnake2);
 	
+	class PlayerImageProvider {
+
+		final Image imageRight;
+		final Image imageLeft;
+		final Image imageUp;
+		final Image imageDown;
+		final Image imageBody;
+
+		public PlayerImageProvider(Image ir, Image il, Image iU, Image iD, Image iB) {
+			imageRight = ir;
+			imageLeft = il;
+			imageUp = iU;
+			imageDown = iD;
+			imageBody = iB;
+		}
+
+		public Image getImageRight() {
+			return imageRight;
+		}
+
+		public Image getImageLeft() {
+			return imageLeft;
+		}
+
+		public Image getImageUp() {
+			return imageUp;
+		}
+
+		public Image getImageDown() {
+			return imageDown;
+		}
+
+		public Image getImageBody() {
+			return imageBody;
+		}
+	}
+	
+
 
 	/**
 	 * @return the panel
