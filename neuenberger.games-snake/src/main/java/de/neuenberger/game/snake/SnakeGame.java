@@ -67,8 +67,6 @@ public class SnakeGame extends JFrame {
 				} else {
 					blockedKeyEvent = e;
 				}
-			} else {
-				System.out.println("unknonw keycode: " + e.getKeyCode());
 			}
 		};
 
