@@ -35,7 +35,7 @@ public class SnakeModelLogic {
 		final boolean outOfBounds = head.getX() < 0 || head.getY() < 0 || head.getX() >= model.getWidth()
 				|| head.getY() >= model.getHeight();
 
-		final Integer hitSelf = Vector2D.hitTest(model.getP1().getDots(), head, 1);
+		final Integer hitSelf = Vector2D.hitTest(p.getDots(), head, 1);
 		if (outOfBounds || hitBlock != null || hitSelf != null) {
 			model.setLifes(p, p.getLifes() - 1);
 		}
